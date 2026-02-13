@@ -126,72 +126,74 @@ class PaymentInitiateRequest {
 
 class PaymentInitiateResponse {
   final bool success;
-  final String? transactionId;
-  final String? reference;
-  final String? merchantReference;
-  final String? status;
-  final num? amount;
-  final String? currency;
-  final String? environment;
-  final String? partner;
-  final String? partnerTransactionId;
-  final List<Map<String, dynamic>>? validationData;
+  final String transactionId;
+  final String merchantReference;
+  final String status;
+  final num amount;
+  final String currency;
+  final String environment;
+  final Map<String, dynamic>? validationData; // ✅ MAP, pas List
   final DateTime? createdAt;
 
   PaymentInitiateResponse({
     required this.success,
-    this.transactionId,
-    this.reference,
-    this.merchantReference,
-    this.status,
-    this.amount,
-    this.currency,
-    this.environment,
-    this.partner,
-    this.partnerTransactionId,
+    required this.transactionId,
+    required this.merchantReference,
+    required this.status,
+    required this.amount,
+    required this.currency,
+    required this.environment,
     this.validationData,
     this.createdAt,
   });
 
   factory PaymentInitiateResponse.fromJson(Map<String, dynamic> json) {
+    final vd = json['validationData'];
+
+    Map<String, dynamic>? parsedVd;
+
+    if (vd is Map) {
+      parsedVd = Map<String, dynamic>.from(vd);
+    } else if (vd is List && vd.isNotEmpty && vd.first is Map) {
+      // compat: si jamais une version renvoie une liste
+      parsedVd = Map<String, dynamic>.from(vd.first as Map);
+    } else {
+      parsedVd = null;
+    }
+
     return PaymentInitiateResponse(
       success: json['success'] == true,
-      transactionId: json['transactionId']?.toString(),
-      reference: json['reference']?.toString(),
-      merchantReference: json['merchantReference']?.toString(),
-      status: json['status']?.toString(),
-      amount: json['amount'] is num ? json['amount'] as num : num.tryParse('${json['amount']}'),
-      currency: json['currency']?.toString(),
-      environment: json['environment']?.toString(),
-      partner: json['partner']?.toString(),
-      partnerTransactionId: json['partnerTransactionId']?.toString(),
-    validationData: (json['validationData'] is List)
-    ? (json['validationData'] as List)
-        .whereType<Map>()
-        .map((e) => Map<String, dynamic>.from(e))
-        .toList()
-    : null,
-
+      transactionId: (json['transactionId'] ?? '').toString(),
+      merchantReference: (json['merchantReference'] ?? '').toString(),
+      status: (json['status'] ?? '').toString(),
+      amount: json['amount'] is num ? json['amount'] as num : num.tryParse('${json['amount']}') ?? 0,
+      currency: (json['currency'] ?? '').toString(),
+      environment: (json['environment'] ?? '').toString(),
+      validationData: parsedVd,
       createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
     );
+  }
+
+  /// ✅ helper: récupère directement l’URL https://.../validate
+  String? get validationUrl {
+    final data = validationData?['data'];
+    if (data is String && (data.startsWith('http://') || data.startsWith('https://'))) {
+      return data;
+    }
+    return null;
   }
 
   Map<String, dynamic> toJson() => {
         'success': success,
         'transactionId': transactionId,
-        'reference': reference,
         'merchantReference': merchantReference,
         'status': status,
         'amount': amount,
         'currency': currency,
         'environment': environment,
-        'partner': partner,
-        'partnerTransactionId': partnerTransactionId,
         'validationData': validationData,
         'createdAt': createdAt?.toIso8601String(),
       };
-
-  @override
-  String toString() => toJson().toString();
 }
+
 
