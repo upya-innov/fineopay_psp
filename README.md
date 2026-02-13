@@ -12,7 +12,7 @@ SDK officiel (non-UI) pour intégrer FineoPay PSP dans une application Flutter :
 
 ## Installation
 
-### 1) Ajouter la dépendance
+### Ajouter la dépendance
 
 Dans `pubspec.yaml` :
 
@@ -24,11 +24,11 @@ dependencies:
       ref: v1.0.0
 ```
 Puis :
-
+```
 flutter pub get
+```
 
-
-Initialisation
+### Initialisation
 
 ```
 import 'package:fineopay_psp/fineopay_psp.dart';
@@ -40,8 +40,11 @@ final client = FineoPayClient(
 ```
 
 
-Payments
-A) Initier un paiement - Workflow OTP
+### Payments
+
+#### A) Initier un paiement - Workflow OTP
+
+```
 final res = await client.payments.initiate(
   PaymentInitiateRequest.otp(
     merchantReference: 'order-${DateTime.now().millisecondsSinceEpoch}',
@@ -62,11 +65,12 @@ final res = await client.payments.initiate(
 
 print(res.reference);
 print(res.status);
+```
 
 
+#### B) Initier un paiement - Workflow IN_APP
 
-B) Initier un paiement - Workflow IN_APP
-
+```
 final res = await client.payments.initiate(
   PaymentInitiateRequest.inApp(
     merchantReference: 'order-${DateTime.now().millisecondsSinceEpoch}',
@@ -87,11 +91,12 @@ final res = await client.payments.initiate(
 );
 
 print(res.validationData); // souvent un lien / instructions de validation
+```
 
+## Transfers
+### Initier un transfert
 
-Transfers
-Initier un transfert
-
+```
 final res = await client.transfers.initiate(
   TransferInitiateRequest(
     transferId: 'transfer-${DateTime.now().millisecondsSinceEpoch}',
@@ -106,22 +111,26 @@ final res = await client.transfers.initiate(
 );
 
 print(res);
+```
 
+### Liste des transferts
 
-Liste des transferts
-
+```
 final list = await client.transfers.list(page: 1, limit: 20);
 print(list);
+```
 
+### Statut d’un transfert
 
-Statut d’un transfert
-
+```
 final status = await client.transfers.status('TRF-123');
 print(status);
+```
 
+### Transactions
+#### Lister
 
-Transactions
-Lister
+```
 final tx = await client.transactions.list(
   page: 1,
   limit: 20,
@@ -129,22 +138,30 @@ final tx = await client.transactions.list(
   transactionType: 'payment', // ou 'transfer'
 );
 print(tx);
+```
 
-Détail
+### Détail
+
+```
 final one = await client.transactions.getById('TX-123');
 print(one);
+```
 
-Références
+### Références
 
+```
 final countries = await client.references.countries();
 final channels = await client.references.channels();
 final currencies = await client.references.currencies();
+```
 
+### Gestion des erreurs
 
-Gestion des erreurs
+```
 try {
   final res = await client.payments.list();
 } on FineoApiException catch (e) {
   print('Erreur API: ${e.statusCode} ${e.message}');
   print('Payload: ${e.data}');
 }
+```
