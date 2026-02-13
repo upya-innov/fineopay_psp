@@ -22,7 +22,7 @@ dependencies:
     git:
       url: https://github.com/upya-innov/fineopay_psp.git
       ref: v1.0.0
-
+```
 Puis :
 
 flutter pub get
@@ -30,13 +30,14 @@ flutter pub get
 
 Initialisation
 
+```
 import 'package:fineopay_psp/fineopay_psp.dart';
 
 final client = FineoPayClient(
   config: FineoConfig.sandbox(), // ou FineoConfig.live()
   apiKey: 'psp_key_xxxxxxxxxxxxxxxxxxxxxxxx',
 );
-
+```
 
 
 Payments
