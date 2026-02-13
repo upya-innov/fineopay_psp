@@ -5,8 +5,9 @@ class TransfersApi {
   final FineoPayClient _client;
   TransfersApi(this._client);
 
-  Future<Map<String, dynamic>> initiate(TransferInitiateRequest req) {
-    return _client.post('/transfers/initiate', body: req.toJson());
+  Future<TransferInitiateResponse> initiate(TransferInitiateRequest req) async {
+    final json = await _client.post('/transfers/initiate', body: req.toJson());
+    return TransferInitiateResponse.fromJson(json);
   }
 
   Future<Map<String, dynamic>> list({

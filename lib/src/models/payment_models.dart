@@ -1,10 +1,3 @@
-import 'customer.dart';
-
-enum PaymentWorkflow { otp, inApp }
-
-String _wfToString(PaymentWorkflow wf) =>
-    wf == PaymentWorkflow.otp ? 'otp' : 'in_app';
-
 class PaymentInitiateRequest {
   final String merchantReference;
   final num amount;
@@ -15,16 +8,13 @@ class PaymentInitiateRequest {
   final String? description;
   final Map<String, dynamic>? metadata;
 
-  final PaymentWorkflow workflow;
-
-  /// OTP workflow
+  final String workflow; // "otp" | "in_app"
   final String? otp;
 
-  /// IN_APP workflow
   final String? successRedirectUrl;
   final String? failedRedirectUrl;
 
-  PaymentInitiateRequest.otp({
+  PaymentInitiateRequest({
     required this.merchantReference,
     required this.amount,
     required this.currency,
@@ -33,95 +23,88 @@ class PaymentInitiateRequest {
     required this.customer,
     this.description,
     this.metadata,
+    required this.workflow,
     this.otp,
-  })  : workflow = PaymentWorkflow.otp,
-        successRedirectUrl = null,
-        failedRedirectUrl = null;
+    this.successRedirectUrl,
+    this.failedRedirectUrl,
+  });
 
-  PaymentInitiateRequest.inApp({
-    required this.merchantReference,
-    required this.amount,
-    required this.currency,
-    required this.channel,
-    required this.country,
-    required this.customer,
-    required this.successRedirectUrl,
-    required this.failedRedirectUrl,
-    this.description,
-    this.metadata,
-  })  : workflow = PaymentWorkflow.inApp,
-        otp = null;
+  factory PaymentInitiateRequest.otp({
+    required String merchantReference,
+    required num amount,
+    required String currency,
+    required String channel,
+    required String country,
+    required Customer customer,
+    String? description,
+    Map<String, dynamic>? metadata,
+    String? otp,
+  }) {
+    return PaymentInitiateRequest(
+      merchantReference: merchantReference,
+      amount: amount,
+      currency: currency,
+      channel: channel,
+      country: country,
+      customer: customer,
+      description: description,
+      metadata: metadata,
+      workflow: 'otp',
+      otp: otp ?? '',
+    );
+  }
+
+  factory PaymentInitiateRequest.inApp({
+    required String merchantReference,
+    required num amount,
+    required String currency,
+    required String channel,
+    required String country,
+    required Customer customer,
+    required String successRedirectUrl,
+    required String failedRedirectUrl,
+    String? description,
+    Map<String, dynamic>? metadata,
+  }) {
+    return PaymentInitiateRequest(
+      merchantReference: merchantReference,
+      amount: amount,
+      currency: currency,
+      channel: channel,
+      country: country,
+      customer: customer,
+      description: description,
+      metadata: metadata,
+      workflow: 'in_app',
+      successRedirectUrl: successRedirectUrl,
+      failedRedirectUrl: failedRedirectUrl,
+    );
+  }
 
   Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{
+    final data = <String, dynamic>{
       'merchantReference': merchantReference,
       'amount': amount,
       'currency': currency,
       'channel': channel,
       'country': country,
       'customer': customer.toJson(),
-      'workflow': _wfToString(workflow),
-      if (description != null) 'description': description,
-      if (metadata != null) 'metadata': metadata,
+      'workflow': workflow,
     };
 
-    if (workflow == PaymentWorkflow.otp) {
-      json['otp'] = otp ?? '';
-    } else {
-      json['successRedirectUrl'] = successRedirectUrl;
-      json['failedRedirectUrl'] = failedRedirectUrl;
+    if (description != null) data['description'] = description;
+    if (metadata != null) data['metadata'] = metadata;
+
+    if (workflow == 'otp') {
+      data['otp'] = otp ?? '';
     }
 
-    // IMPORTANT:
-    // callback_url (webhook) ne se met pas dans cette requête.
-    // Il est configuré dans l’espace marchand via la configuration des Webhooks.
-    return json;
+    if (workflow == 'in_app') {
+      if (successRedirectUrl != null) data['successRedirectUrl'] = successRedirectUrl;
+      if (failedRedirectUrl != null) data['failedRedirectUrl'] = failedRedirectUrl;
+    }
+
+    // ⚠️ callback_url ne se met PAS ici (webhook configuré côté dashboard)
+    return data;
   }
-}
-
-class PaymentInitiateResponse {
-  final bool success;
-  final String? transactionId;
-  final String? reference;
-  final String? merchantReference;
-  final String? status;
-  final num? amount;
-  final String? currency;
-  final String? environment;
-  final String? partner;
-  final String? partnerTransactionId;
-  final List<dynamic>? validationData;
-  final String? createdAt;
-
-  PaymentInitiateResponse({
-    required this.success,
-    this.transactionId,
-    this.reference,
-    this.merchantReference,
-    this.status,
-    this.amount,
-    this.currency,
-    this.environment,
-    this.partner,
-    this.partnerTransactionId,
-    this.validationData,
-    this.createdAt,
-  });
-
-  factory PaymentInitiateResponse.fromJson(Map<String, dynamic> json) =>
-      PaymentInitiateResponse(
-        success: json['success'] == true,
-        transactionId: json['transactionId'] as String?,
-        reference: json['reference'] as String?,
-        merchantReference: json['merchantReference'] as String?,
-        status: json['status'] as String?,
-        amount: json['amount'] as num?,
-        currency: json['currency'] as String?,
-        environment: json['environment'] as String?,
-        partner: json['partner'] as String?,
-        partnerTransactionId: json['partnerTransactionId'] as String?,
-        validationData:
-            (json['validationData'] as List?) ?? (json['validation_data'] as List?),
-        createdAt: (json['createdAt'] as String?) ?? (json['created_at'] as String?),
-      );
 }
