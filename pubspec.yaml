@@ -1,0 +1,13 @@
+name: fineopay_psp
+description: FineoPay PSP SDK for Flutter/Dart (Payments, Transfers, Transactions, References).
+version: 1.0.0
+homepage: https://fineopay.com
+
+environment:
+  sdk: ">=3.2.0 <4.0.0"
+
+dependencies:
+  http: ^1.2.2
+
+dev_dependencies:
+  lints: ^5.0.0
