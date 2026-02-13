@@ -1,4 +1,4 @@
-## 1.0.6
+## 1.0.7
 
 - fix: clean models
 - fix: add TransferInitiateResponse
