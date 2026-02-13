@@ -127,17 +127,23 @@ class PaymentInitiateRequest {
 class PaymentInitiateResponse {
   final bool success;
   final String transactionId;
+  final String? reference; // optionnel si pas renvoyé
   final String merchantReference;
   final String status;
   final num amount;
   final String currency;
   final String environment;
-  final Map<String, dynamic>? validationData; // ✅ MAP, pas List
+
+  /// ✅ L’API renvoie un OBJECT ici (pas une liste)
+  /// ex: {"method":"otp","data":"https://.../validate"}
+  final Map<String, dynamic>? validationData;
+
   final DateTime? createdAt;
 
   PaymentInitiateResponse({
     required this.success,
     required this.transactionId,
+    this.reference,
     required this.merchantReference,
     required this.status,
     required this.amount,
@@ -151,12 +157,8 @@ class PaymentInitiateResponse {
     final vd = json['validationData'];
 
     Map<String, dynamic>? parsedVd;
-
     if (vd is Map) {
       parsedVd = Map<String, dynamic>.from(vd);
-    } else if (vd is List && vd.isNotEmpty && vd.first is Map) {
-      // compat: si jamais une version renvoie une liste
-      parsedVd = Map<String, dynamic>.from(vd.first as Map);
     } else {
       parsedVd = null;
     }
@@ -164,20 +166,26 @@ class PaymentInitiateResponse {
     return PaymentInitiateResponse(
       success: json['success'] == true,
       transactionId: (json['transactionId'] ?? '').toString(),
+      reference: json['reference']?.toString(),
       merchantReference: (json['merchantReference'] ?? '').toString(),
       status: (json['status'] ?? '').toString(),
-      amount: json['amount'] is num ? json['amount'] as num : num.tryParse('${json['amount']}') ?? 0,
+      amount: json['amount'] is num
+          ? (json['amount'] as num)
+          : num.tryParse('${json['amount']}') ?? 0,
       currency: (json['currency'] ?? '').toString(),
       environment: (json['environment'] ?? '').toString(),
       validationData: parsedVd,
-      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'].toString())
+          : null,
     );
   }
 
-  /// ✅ helper: récupère directement l’URL https://.../validate
+  /// ✅ URL de validation OTP (si présent)
   String? get validationUrl {
     final data = validationData?['data'];
-    if (data is String && (data.startsWith('http://') || data.startsWith('https://'))) {
+    if (data is String &&
+        (data.startsWith('http://') || data.startsWith('https://'))) {
       return data;
     }
     return null;
@@ -186,6 +194,7 @@ class PaymentInitiateResponse {
   Map<String, dynamic> toJson() => {
         'success': success,
         'transactionId': transactionId,
+        if (reference != null) 'reference': reference,
         'merchantReference': merchantReference,
         'status': status,
         'amount': amount,
@@ -195,5 +204,6 @@ class PaymentInitiateResponse {
         'createdAt': createdAt?.toIso8601String(),
       };
 }
+
 
 
