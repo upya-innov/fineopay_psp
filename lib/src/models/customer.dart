@@ -1,5 +1,5 @@
 class Customer {
-  final String phoneNumber; // E.164 e.g. +2250700000000
+  final String phoneNumber;
   final String? email;
   final String? name;
 
@@ -9,9 +9,22 @@ class Customer {
     this.name,
   });
 
-  Map<String, dynamic> toJson() => {
-        'phoneNumber': phoneNumber,
-        if (email != null) 'email': email,
-        if (name != null) 'name': name,
-      };
+  factory Customer.fromJson(Map<String, dynamic> json) {
+    return Customer(
+      phoneNumber: json['phoneNumber']?.toString() ?? '',
+      email: json['email']?.toString(),
+      name: json['name']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{
+      'phoneNumber': phoneNumber,
+    };
+
+    if (email != null) data['email'] = email;
+    if (name != null) data['name'] = name;
+
+    return data;
+  }
 }

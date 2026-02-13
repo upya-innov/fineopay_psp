@@ -1,3 +1,9 @@
+import 'customer.dart';
+
+/// ===============================
+/// PAYMENT INITIATE REQUEST
+/// ===============================
+
 class PaymentInitiateRequest {
   final String merchantReference;
   final num amount;
@@ -29,6 +35,7 @@ class PaymentInitiateRequest {
     this.failedRedirectUrl,
   });
 
+  /// OTP FLOW
   factory PaymentInitiateRequest.otp({
     required String merchantReference,
     required num amount,
@@ -54,6 +61,7 @@ class PaymentInitiateRequest {
     );
   }
 
+  /// IN-APP FLOW
   factory PaymentInitiateRequest.inApp({
     required String merchantReference,
     required num amount,
@@ -100,11 +108,79 @@ class PaymentInitiateRequest {
     }
 
     if (workflow == 'in_app') {
-      if (successRedirectUrl != null) data['successRedirectUrl'] = successRedirectUrl;
-      if (failedRedirectUrl != null) data['failedRedirectUrl'] = failedRedirectUrl;
+      if (successRedirectUrl != null) {
+        data['successRedirectUrl'] = successRedirectUrl;
+      }
+      if (failedRedirectUrl != null) {
+        data['failedRedirectUrl'] = failedRedirectUrl;
+      }
     }
 
-    // ⚠️ callback_url ne se met PAS ici (webhook configuré côté dashboard)
     return data;
+  }
+}
+
+/// ===============================
+/// PAYMENT INITIATE RESPONSE
+/// ===============================
+
+class PaymentInitiateResponse {
+  final bool? success;
+  final String? transactionId;
+  final String? reference;
+  final String? merchantReference;
+  final String? status;
+  final num? amount;
+  final String? currency;
+  final String? environment;
+  final String? partner;
+  final String? partnerTransactionId;
+  final List<Map<String, dynamic>>? validationData;
+  final DateTime? createdAt;
+
+  PaymentInitiateResponse({
+    this.success,
+    this.transactionId,
+    this.reference,
+    this.merchantReference,
+    this.status,
+    this.amount,
+    this.currency,
+    this.environment,
+    this.partner,
+    this.partnerTransactionId,
+    this.validationData,
+    this.createdAt,
+  });
+
+  factory PaymentInitiateResponse.fromJson(Map<String, dynamic> json) {
+    // L'API peut renvoyer directement les champs
+    // ou { success, data: {...} }
+    final payload = (json['data'] is Map<String, dynamic>)
+        ? (json['data'] as Map<String, dynamic>)
+        : json;
+
+    return PaymentInitiateResponse(
+      success: json['success'] as bool? ?? payload['success'] as bool?,
+      transactionId: payload['transactionId']?.toString(),
+      reference: payload['reference']?.toString(),
+      merchantReference: payload['merchantReference']?.toString(),
+      status: payload['status']?.toString(),
+      amount: payload['amount'] as num?,
+      currency: payload['currency']?.toString(),
+      environment: payload['environment']?.toString(),
+      partner: payload['partner']?.toString(),
+      partnerTransactionId: payload['partnerTransactionId']?.toString(),
+validationData: (payload['validationData'] is List)
+    ? (payload['validationData'] as List)
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList()
+    : null,
+
+      createdAt: payload['createdAt'] != null
+          ? DateTime.tryParse(payload['createdAt'].toString())
+          : null,
+    );
   }
 }
