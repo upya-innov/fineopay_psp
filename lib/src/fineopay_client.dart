@@ -78,6 +78,24 @@ class FineoPayClient {
     return _decode(res);
   }
 
+  Future<Map<String, dynamic>> postAbsoluteNoAuth(
+  String absoluteUrl, {
+  Map<String, String>? headers,
+}) async {
+  final res = await _http.post(
+    Uri.parse(absoluteUrl),
+    headers: {
+      'Accept': 'application/json',
+      // pas de X-API-Key
+      // pas forcément Content-Type car pas de body
+      ...?headers,
+    },
+  );
+
+  return _decode(res);
+}
+
+
   Map<String, dynamic> _decode(http.Response res) {
     final text = res.body;
     dynamic jsonBody;

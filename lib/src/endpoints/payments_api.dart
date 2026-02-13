@@ -25,4 +25,8 @@ class PaymentsApi {
   Future<Map<String, dynamic>> status(String transactionId) {
     return _client.get('/payments/$transactionId/status');
   }
+  Future<Map<String, dynamic>> validateOtpNoAuth(String validationUrl) {
+  return _client.postAbsoluteNoAuth(validationUrl);
+}
+
 }
